@@ -1,54 +1,60 @@
+from multiprocessing.spawn import _main
 import speech_recognition as sr
 import pyttsx3
-import datetime
-import wikipedia
+import webbrowser
+from datetime import datetime
 
-# Initialize text-to-speech engine
+
+# Initialize the speech recognition engine
+recognizer = sr.Recognizer()
+
+# Initialize the text-to-speech engine
 engine = pyttsx3.init()
 
-# Function to speak
+# Function to speak out the response
 def speak(text):
     engine.say(text)
     engine.runAndWait()
 
-# Function to recognize voice commands
-def take_command():
-    r = sr.Recognizer()
+# Main function to listen for commands and respond
+def main():
+
     with sr.Microphone() as source:
         print("Listening...")
-        audio = r.listen(source)
-        try:
-            print("Recognizing...")
-            query = r.recognize_google(audio, language='en-us')
-            print(f"You said: {query}\n")
-        except Exception as e:
-            print("Sorry, I didn't catch that. Can you repeat?")
-            return "None"
-    return query.lower()
+        audio = recognizer.listen(source)
 
-# Function to execute commands
-def run_voice_assistant():
-    speak("Hello, I am your voice assistant. How can I help you?")
-    while True:
-        query = take_command()
+    try:
+        # Use Google's speech recognition to convert audio to text
+        command = recognizer.recognize_google(audio)
 
-        if 'wikipedia' in query:
-            speak('Searching Wikipedia...')
-            query = query.replace("wikipedia", "")
-            results = wikipedia.summary(query, sentences=2)
-            speak("According to Wikipedia")
-            speak(results)
-
-        elif 'time' in query:
-            current_time = datetime.datetime.now().strftime("%H:%M:%S")
-            speak(f"The current time is {current_time}")
-
-        elif 'quit' in query or 'exit' in query:
-            speak("Goodbye!")
-            break
-
+        print("You said: " + command)
+        
+        # Simple commands to demonstrate functionality
+        if "hello" in command:
+            speak("Hello! How can I help you?")
+        elif "what is your name" in command:
+            speak("I am a voice assistant built with Python.")
+        elif "open Google" in command:
+            webbrowser.open("https://www.google.com")
+        elif "open sign up LinkedIn page" in command:
+            webbrowser.open("https://www.google.com/search?q=linkedin")
+        elif "time" in command:
+            # Get the current time
+            current_time = datetime.now().strftime("%H:%M:%S")
+            print("Current time is:", current_time)
+            engine.say("The current time is " + current_time)
+            engine.runAndWait()
         else:
             speak("Sorry, I didn't understand that command.")
 
+    except sr.UnknownValueError:
+        print("Google Speech Recognition could not understand audio")
+    except sr.RequestError as e:
+        print("Could not request results from Google Speech Recognition service; {0}".format(e))
+
+    
+
+
 if __name__ == "__main__":
-    run_voice_assistant()
+    while True:
+        main()
